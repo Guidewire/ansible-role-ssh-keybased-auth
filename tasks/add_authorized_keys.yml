@@ -1,0 +1,13 @@
+---
+- name: read public keys
+  slurp:
+    src: "{{ outer_item.path }}"
+  register: key_content
+
+- name: set authorized keys for users
+  authorized_key:
+    user: "{{ outer_item.path | basename | regex_replace('_.+\\.pub$') }}"
+    state: present
+    key: "{{ key_content['content'] | b64decode }}"
+    exclusive: yes
+    manage_dir: yes

@@ -1,0 +1,3 @@
+*.rerty
+*.log
+molecule/default/.molecule

@@ -1,0 +1,84 @@
+---
+- name: install git
+  package:
+    name: git
+
+- name: delete tmp folder
+  file:
+    path: /tmp/ssh-keys
+    state: absent
+  changed_when: false
+
+- name: create tmp folder
+  file:
+    path: /tmp/ssh-keys
+    state: directory
+  changed_when: false
+
+- name: clone the repo with ssh public keys
+  git:
+    repo: "{{ keys_git_repo }}"
+    dest: /tmp/ssh-keys
+    version: "{{ keys_git_repo_branch }}"
+  changed_when: false
+
+- name: create groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items: user_groups
+
+- name: find public keys in repo
+  find:
+    paths: "/tmp/ssh-keys"
+    patterns: "*.pub"
+    recurse: yes
+  register: keys
+
+- name: print public keys found
+  debug: 
+    msg: "{{ item.path }}"
+  with_items:
+    - "{{ keys.files }}"
+
+- name: find homes
+  find:
+    paths: "/home, {{ default_home_folder }}"
+    file_type: directory
+  register: homes
+    
+- name: print homes found
+  debug: 
+    msg: "{{ item.path }}"
+  with_items:
+    - "{{ homes.files }}"
+
+- name: create users
+  user:
+    name: "{{ item.path | basename | regex_replace('_.+\\.pub$') }}"
+    home: "{{ default_home_folder }}/{{ item.path | basename | regex_replace('_.+\\.pub$') }}"
+    shell: /bin/bash
+    groups: user_groups
+  with_items:
+    - "{{ keys.files }}"
+
+# workaround while looping over blocks isn't allowed
+- include: add_authorized_keys.yml
+  with_items:
+    - "{{ keys.files }}"
+  loop_control:
+    loop_var: outer_item
+
+- set_fact: keys_list="[ '' ]"    
+- set_fact: keys_list="{{ keys_list }} + [ '{{ item.path | basename | regex_replace('_.+\\.pub$') }}' ]"
+  with_items:
+    - "{{ keys.files }}"
+
+- name: remove users
+  user:
+    name: "{{ item.path | basename }}"
+    state: absent
+    remove: yes
+  when: (item.path | basename not in keys_list) and (item.path | basename != ansible_user)
+  with_items:
+    - "{{ homes.files }}"

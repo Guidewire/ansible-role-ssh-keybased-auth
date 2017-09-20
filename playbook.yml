@@ -1,0 +1,18 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: install python2
+      raw: test -e /usr/bin/python || (apt update && apt install -y python-minimal)
+      changed_when: false
+    - name: gather facts
+      setup:
+    - name: install libselinux-python binary for ansible to work
+      yum: name=libselinux-python state=present
+      when: ansible_pkg_mgr == 'yum' and not ansible_selinux
+
+- hosts: all
+  roles:
+    - role: ansible-role-ssh-keybased-auth
+      keys_git_repo: https://<your_git_repo_url>/ssh-keys.git
