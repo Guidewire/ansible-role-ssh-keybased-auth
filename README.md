@@ -1,10 +1,10 @@
-# SSH keybased authentication setup
+# SSH key-based authentication setup
 
 ## Summary
 This role manages local users and SSH-keys in a centralized way.
 
 ## Prerequisite
-A team should store their public SSH-keys in any Git repo which is accessible without authorization from Ansible host. All the keys filenames should match the mask _*_*.pub_.
+A team should store their public SSH-keys in any Git repo which is accessible without authorization from Ansible host. All the keys filenames should match the mask "\*\_\*.pub".
 
 ## Variables
 | Variable             | Required  | Default | Description                                 |
