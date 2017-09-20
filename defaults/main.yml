@@ -1,4 +1,4 @@
 keys_git_repo: ""
-keys_git_repo_version: master
+keys_git_repo_branch: master
 user_groups: []
 default_home_folder: /home

@@ -20,13 +20,14 @@
     repo: "{{ keys_git_repo }}"
     dest: /tmp/ssh-keys
     version: "{{ keys_git_repo_branch }}"
+    accept_hostkey: true
   changed_when: false
 
 - name: create groups
   group:
     name: "{{ item }}"
     state: present
-  with_items: user_groups
+  with_items: "{{ user_groups }}"
 
 - name: find public keys in repo
   find:
@@ -58,7 +59,7 @@
     name: "{{ item.path | basename | regex_replace('_.+\\.pub$') }}"
     home: "{{ default_home_folder }}/{{ item.path | basename | regex_replace('_.+\\.pub$') }}"
     shell: /bin/bash
-    groups: user_groups
+    groups: "{{ user_groups }}"
   with_items:
     - "{{ keys.files }}"
 
